@@ -1,0 +1,19 @@
+# Rust / Cargo
+**/target/
+
+# Model files
+*.gguf
+models/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+todo.md
+**.todo.md

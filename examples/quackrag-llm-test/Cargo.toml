@@ -1,0 +1,10 @@
+[package]
+name = "quackrag-llm-test"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+llama-cpp-2 = "0.1"
+hf-hub = "0.4"
+anyhow = "1.0"
+clap = { version = "4.5", features = ["derive", "env"] }
