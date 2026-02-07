@@ -23,8 +23,8 @@ impl PromptBuilder {
 
     pub fn build(&self, context: &str, question: &str) -> String {
         self.template
-            .replace("{context}", context)
             .replace("{question}", question)
+            .replace("{context}", context)
     }
 }
 
@@ -54,5 +54,13 @@ mod tests {
         let result = builder.build("", "");
         assert!(result.contains("Context:\n"));
         assert!(result.contains("Question: \n"));
+    }
+
+    #[test]
+    fn template_injection_protection() {
+        // context に {question} が含まれていても、意図しない置換が起こらないことを確認
+        let builder = PromptBuilder::new("Context: {context}\nQ: {question}");
+        let result = builder.build("The placeholder is {question}", "What is RAG?");
+        assert_eq!(result, "Context: The placeholder is {question}\nQ: What is RAG?");
     }
 }

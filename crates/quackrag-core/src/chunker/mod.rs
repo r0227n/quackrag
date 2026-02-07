@@ -18,6 +18,7 @@ impl Default for FixedSizeChunker {
 
 impl FixedSizeChunker {
     pub fn new(size: usize, overlap: usize) -> Self {
+        assert!(size > 0, "chunk size must be greater than 0");
         Self { size, overlap }
     }
 }
@@ -136,5 +137,12 @@ mod tests {
         let chunker = FixedSizeChunker::default();
         assert_eq!(chunker.size, 512);
         assert_eq!(chunker.overlap, 64);
+    }
+
+    #[test]
+    #[should_panic(expected = "chunk size must be greater than 0")]
+    fn zero_size_validation() {
+        // size=0 の場合はパニックする
+        let _chunker = FixedSizeChunker::new(0, 0);
     }
 }
