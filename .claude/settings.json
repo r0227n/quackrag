@@ -1,0 +1,35 @@
+{
+    "env": {
+      "ENABLE_TOOL_SEARCH": "true",
+      "ENABLE_EXPERIMENTAL_MCP_CLI": "false"
+    },
+    "permissions": {
+      "allow": [
+        "Edit",
+        "Write",
+        "Bash(cargo build:*)",
+        "Bash(cargo clean:*)",
+        "Bash(cargo test:*)"
+
+      ],
+      "defaultMode": "plan"
+    },
+    "hooks": {
+      "Stop": [
+        {
+          "hooks": [
+            {
+              "type": "command",
+              "command": "cargo fmt --all",
+              "timeout": 60
+            }
+          ]
+        }
+      ]
+    },
+    "enabledPlugins": {
+      "rust-analyzer-lsp@claude-plugins-official": true
+    },
+    "language": "japanese"
+  }
+  

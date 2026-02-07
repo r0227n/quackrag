@@ -1,0 +1,11 @@
+[package]
+name = "quackrag-llm"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+quackrag-core = { path = "../quackrag-core" }
+async-trait.workspace = true
+anyhow.workspace = true
+tracing.workspace = true
+futures.workspace = true
