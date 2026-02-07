@@ -1,0 +1,13 @@
+[package]
+name = "qg"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "qg"
+path = "src/main.rs"
+
+[dependencies]
+quackrag-core = { path = "../crates/quackrag-core" }
+anyhow.workspace = true
+tokio.workspace = true

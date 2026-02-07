@@ -1,0 +1,11 @@
+[package]
+name = "quackrag-ffi"
+version.workspace = true
+edition.workspace = true
+
+[lib]
+crate-type = ["lib"]
+
+[dependencies]
+quackrag-core = { path = "../quackrag-core" }
+anyhow.workspace = true
