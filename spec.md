@@ -61,7 +61,7 @@ quackrag/
 │  ┌─────────────▼───────┐  ┌──────▼────────┐  ┌─────▼─────────────────┐ │
 │  │ quackrag-embedding  │  │ quackrag-llm  │  │   quackrag-store      │ │
 │  │                     │  │               │  │                       │ │
-│  │ • Candle backend    │  │ • Gemma 3     │  │ • DuckDB (全Platform) │ │
+│  │ • Candle backend    │  │ • Candle      │  │ • DuckDB (全Platform) │ │
 │  │ • ONNX backend      │  │ • GGUF support│  │ • vss拡張 (HNSW)      │ │
 │  │ • CoreML (iOS)      │  │ • CoreML(iOS) │  │ • In-memory option    │ │
 │  │ • NNAPI (Android)   │  │ • NNAPI(Andr) │  │                       │ │
@@ -172,9 +172,9 @@ pub trait VectorStore: Send + Sync {
 
 | Platform | EmbeddingModel | LlmBackend | VectorStore |
 |----------|---------------|------------|-------------|
-| **Desktop** | Candle | llama-cpp-2 (Gemma 3 GGUF) | DuckDB + vss |
-| **iOS** | CoreML / ONNX | llama-cpp-2 (GGUF) | DuckDB + vss |
-| **Android** | NNAPI / ONNX | llama-cpp-2 (GGUF) | DuckDB + vss |
+| **Desktop** | Candle | Candle (Gemma 3 GGUF) | DuckDB + vss |
+| **iOS** | CoreML / ONNX | Candle (GGUF) | DuckDB + vss |
+| **Android** | NNAPI / ONNX | Candle (GGUF) | DuckDB + vss |
 | **Flutter** | Platform Channel | Platform Channel | DuckDB + vss |
 
 ### Feature Flags
@@ -188,8 +188,8 @@ onnx = ["ort"]
 
 # quackrag-llm/Cargo.toml
 [features]
-default = ["llamacpp"]
-llamacpp = ["dep:llama-cpp-2", "dep:hf-hub"]
+default = ["candle"]
+candle = ["dep:candle-core", "dep:candle-transformers", "dep:tokenizers", "dep:hf-hub"]
 
 # quackrag-store/Cargo.toml
 [features]
@@ -229,9 +229,9 @@ uuid = { version = "1.0", features = ["v4"] }
 
 **Desktop (qg CLI)**
 ```toml
-candle-core = "0.8"
-candle-transformers = "0.8"
-llama-cpp-2 = "0.1"
+candle-core = "0.9"
+candle-transformers = "0.9"
+tokenizers = "0.21"
 hf-hub = "0.4"
 duckdb = { version = "1.1", features = ["bundled"] }
 clap = { version = "4", features = ["derive"] }
@@ -240,7 +240,9 @@ clap = { version = "4", features = ["derive"] }
 **Mobile (quackrag-ffi)**
 ```toml
 uniffi = "0.28"
-llama-cpp-2 = "0.1"
+candle-core = "0.9"
+candle-transformers = "0.9"
+tokenizers = "0.21"
 hf-hub = "0.4"
 duckdb = { version = "1.1", features = ["bundled"] }
 ```
@@ -382,9 +384,11 @@ quackrag/
 │   │   ├── Cargo.toml
 │   │   └── src/
 │   │       ├── lib.rs
-│   │       └── llamacpp/
+│   │       ├── config.rs
+│   │       └── candle/
 │   │           ├── mod.rs
-│   │           └── gemma.rs
+│   │           ├── backend.rs
+│   │           └── generation.rs
 │   │
 │   ├── quackrag-store/
 │   │   ├── Cargo.toml
@@ -450,12 +454,9 @@ quackrag/
 - [DuckDB Rust Client](https://duckdb.org/docs/api/rust)
 - [DuckDB VSS Extension](https://duckdb.org/docs/extensions/vss)
 
-### Candle (Embedding)
+### Candle (LLM / Embedding)
 - [Candle GitHub](https://github.com/huggingface/candle)
-
-### llama-cpp-2 (LLM)
-- [llama-cpp-2 crate](https://crates.io/crates/llama-cpp-2)
-- [llama.cpp GitHub](https://github.com/ggerganov/llama.cpp)
+- [candle-transformers crate](https://crates.io/crates/candle-transformers) (quantized_gemma3)
 - [Gemma 3 GGUF models](https://huggingface.co/ggml-org/gemma-3-1b-it-GGUF)
 
 ### Mobile FFI
