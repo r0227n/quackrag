@@ -9,5 +9,17 @@ path = "src/main.rs"
 
 [dependencies]
 quackrag-core = { path = "../crates/quackrag-core" }
+quackrag-embedding = { path = "../crates/quackrag-embedding" }
+quackrag-llm = { path = "../crates/quackrag-llm" }
+quackrag-store = { path = "../crates/quackrag-store" }
 anyhow.workspace = true
 tokio.workspace = true
+futures.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+toml.workspace = true
+tracing.workspace = true
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+clap = { version = "4", features = ["derive"] }
+indicatif = "0.17"
+dirs = "6"

@@ -73,6 +73,11 @@ pub fn build_clear_sql() -> &'static str {
     "DELETE FROM embeddings; DELETE FROM documents;"
 }
 
+/// ソース一覧取得
+pub fn build_list_sources_sql() -> &'static str {
+    "SELECT DISTINCT source FROM documents ORDER BY source"
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -126,5 +131,6 @@ mod tests {
         assert!(!build_delete_document_sql().is_empty());
         assert!(!build_count_sql().is_empty());
         assert!(!build_clear_sql().is_empty());
+        assert!(!build_list_sources_sql().is_empty());
     }
 }
