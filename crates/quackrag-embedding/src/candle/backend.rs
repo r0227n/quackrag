@@ -101,11 +101,7 @@ impl CandleEmbedding {
             .map_err(|e| QuackragError::Embedding(format!("Tokenization failed: {e}")))?;
 
         // トークナイザーからパディングトークンIDを取得（未設定の場合は0）
-        let pad_token_id = self
-            .tokenizer
-            .get_padding()
-            .map(|p| p.pad_id)
-            .unwrap_or(0);
+        let pad_token_id = self.tokenizer.get_padding().map(|p| p.pad_id).unwrap_or(0);
 
         // 最大シーケンス長を計算（config上限でクリップ、最小1を保証）
         let max_len = encodings
