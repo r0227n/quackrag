@@ -42,12 +42,12 @@ impl EmbeddingConfig {
     }
 
     pub fn with_max_batch_size(mut self, size: usize) -> Self {
-        self.max_batch_size = size;
+        self.max_batch_size = size.max(1);
         self
     }
 
     pub fn with_max_seq_length(mut self, length: usize) -> Self {
-        self.max_seq_length = length;
+        self.max_seq_length = length.max(1);
         self
     }
 

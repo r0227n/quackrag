@@ -1,3 +1,5 @@
+#![cfg(feature = "candle")]
+
 use quackrag_core::traits::embedding::EmbeddingModel;
 use quackrag_embedding::{CandleEmbedding, EmbeddingConfig};
 

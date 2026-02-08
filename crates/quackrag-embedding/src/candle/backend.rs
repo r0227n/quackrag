@@ -67,6 +67,8 @@ impl CandleEmbedding {
         let hidden_size = bert_config.hidden_size;
 
         // SafeTensors から重みをロード
+        // SAFETY: モデルファイルはロード後に変更されない読み取り専用ファイルであるため、
+        // メモリマップドアクセスは安全です。
         tracing::info!("Loading model from {:?}", model_path);
         let vb = unsafe {
             VarBuilder::from_mmaped_safetensors(&[&model_path], DType::F32, &device)
@@ -98,13 +100,21 @@ impl CandleEmbedding {
             .encode_batch(texts.to_vec(), true)
             .map_err(|e| QuackragError::Embedding(format!("Tokenization failed: {e}")))?;
 
-        // 最大シーケンス長を計算（config上限でクリップ）
+        // トークナイザーからパディングトークンIDを取得（未設定の場合は0）
+        let pad_token_id = self
+            .tokenizer
+            .get_padding()
+            .map(|p| p.pad_id)
+            .unwrap_or(0);
+
+        // 最大シーケンス長を計算（config上限でクリップ、最小1を保証）
         let max_len = encodings
             .iter()
             .map(|e| e.get_ids().len())
             .max()
             .unwrap_or(0)
-            .min(self.config.max_seq_length);
+            .min(self.config.max_seq_length)
+            .max(1);
 
         let batch_size = encodings.len();
         let mut input_ids_vec = Vec::with_capacity(batch_size * max_len);
@@ -124,7 +134,7 @@ impl CandleEmbedding {
             }
             // パディング
             for _ in len..max_len {
-                input_ids_vec.push(0i64);
+                input_ids_vec.push(pad_token_id as i64);
                 token_type_ids_vec.push(0i64);
                 attention_mask_vec.push(0i64);
             }
@@ -195,6 +205,11 @@ impl CandleEmbedding {
 
     /// 内部推論: テキスト群をembeddingに変換
     fn embed_inner(&self, texts: &[&str]) -> Result<Vec<Vec<f32>>> {
+        // 空配列の場合は早期リターン
+        if texts.is_empty() {
+            return Ok(vec![]);
+        }
+
         let (input_ids, token_type_ids, attention_mask) = self.tokenize(texts)?;
 
         // BertModel::forward
