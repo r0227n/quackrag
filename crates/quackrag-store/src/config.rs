@@ -35,6 +35,18 @@ impl DistanceMetric {
             DistanceMetric::InnerProduct => "ip",
         }
     }
+
+    /// 距離値をスコアに変換する（スコアが高いほど類似）
+    pub fn distance_to_score(&self, distance: f32) -> f32 {
+        match self {
+            // Cosine: distance は 0..2 の範囲、0が最も類似
+            DistanceMetric::Cosine => 1.0 - distance,
+            // L2: ユークリッド距離、0が最も類似。1/(1+distance) で正規化
+            DistanceMetric::L2 => 1.0 / (1.0 + distance),
+            // InnerProduct: 内積の負値が距離として返される想定。元の内積値を復元
+            DistanceMetric::InnerProduct => -distance,
+        }
+    }
 }
 
 /// DuckDB ストア設定
@@ -64,6 +76,7 @@ impl DuckDbConfig {
     }
 
     pub fn with_embedding_dimension(mut self, dim: usize) -> Self {
+        assert!(dim > 0, "embedding_dimension must be greater than 0");
         self.embedding_dimension = dim;
         self
     }

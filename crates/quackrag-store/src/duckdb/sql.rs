@@ -1,7 +1,29 @@
 use crate::config::DuckDbConfig;
 
 /// embedding 配列を DuckDB の FLOAT[N] リテラルとしてフォーマットする
+///
+/// # Panics
+/// 埋め込みベクトルに NaN または Infinity が含まれている場合にパニックする
 pub fn format_embedding_literal(embedding: &[f32], dimension: usize) -> String {
+    // 次元数の検証
+    assert_eq!(
+        embedding.len(),
+        dimension,
+        "Embedding length mismatch: expected {}, got {}",
+        dimension,
+        embedding.len()
+    );
+
+    // NaN/Infinityのチェック
+    for (i, &v) in embedding.iter().enumerate() {
+        assert!(
+            v.is_finite(),
+            "Embedding contains invalid value at index {}: {:?}",
+            i,
+            v
+        );
+    }
+
     let values: Vec<String> = embedding.iter().map(|v| format!("{v}")).collect();
     format!("[{}]::FLOAT[{dimension}]", values.join(","))
 }

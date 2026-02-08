@@ -62,21 +62,32 @@ impl VectorStore for DuckDbStore {
         let dim = self.config.embedding_dimension;
 
         tokio::task::spawn_blocking(move || {
-            let conn = conn
+            let mut conn = conn
                 .lock()
                 .map_err(|e| QuackragError::Store(format!("Failed to lock connection: {e}")))?;
 
-            conn.execute(
+            // トランザクション開始
+            let tx = conn
+                .transaction()
+                .map_err(|e| QuackragError::Store(format!("Failed to begin transaction: {e}")))?;
+
+            // ドキュメント挿入
+            tx.execute(
                 sql::build_insert_document_sql(),
                 duckdb::params![doc_id, source, content, chunk_index as i32, metadata],
             )
             .map_err(|e| QuackragError::Store(format!("Failed to insert document: {e}")))?;
 
+            // 埋め込みベクトル挿入
             let embedding_literal = sql::format_embedding_literal(&embedding, dim);
             let embedding_id = uuid::Uuid::new_v4().to_string();
             let insert_sql = sql::build_insert_embedding_sql(&embedding_literal);
-            conn.execute(&insert_sql, duckdb::params![embedding_id, doc_id])
+            tx.execute(&insert_sql, duckdb::params![embedding_id, doc_id])
                 .map_err(|e| QuackragError::Store(format!("Failed to insert embedding: {e}")))?;
+
+            // コミット
+            tx.commit()
+                .map_err(|e| QuackragError::Store(format!("Failed to commit transaction: {e}")))?;
 
             Ok(())
         })
@@ -119,8 +130,18 @@ impl VectorStore for DuckDbStore {
                     let metadata_str: String = row.get(4)?;
                     let distance: f32 = row.get(5)?;
 
-                    let metadata: HashMap<String, String> =
-                        serde_json::from_str(&metadata_str).unwrap_or_default();
+                    let metadata: HashMap<String, String> = serde_json::from_str(&metadata_str)
+                        .unwrap_or_else(|e| {
+                            tracing::warn!(
+                                "Failed to deserialize metadata for document {}: {}",
+                                id,
+                                e
+                            );
+                            HashMap::new()
+                        });
+
+                    // メトリックに応じてスコアを計算
+                    let score = config.distance_metric.distance_to_score(distance);
 
                     Ok(SearchResult {
                         document: Document {
@@ -130,7 +151,7 @@ impl VectorStore for DuckDbStore {
                             chunk_index: chunk_index as usize,
                             metadata,
                         },
-                        score: 1.0 - distance,
+                        score,
                         distance,
                     })
                 })
@@ -154,21 +175,32 @@ impl VectorStore for DuckDbStore {
         let document_id = document_id.to_string();
 
         tokio::task::spawn_blocking(move || {
-            let conn = conn
+            let mut conn = conn
                 .lock()
                 .map_err(|e| QuackragError::Store(format!("Failed to lock connection: {e}")))?;
 
-            conn.execute(
+            // トランザクション開始
+            let tx = conn
+                .transaction()
+                .map_err(|e| QuackragError::Store(format!("Failed to begin transaction: {e}")))?;
+
+            // 埋め込みベクトル削除
+            tx.execute(
                 sql::build_delete_embeddings_sql(),
                 duckdb::params![document_id],
             )
             .map_err(|e| QuackragError::Store(format!("Failed to delete embeddings: {e}")))?;
 
-            conn.execute(
+            // ドキュメント削除
+            tx.execute(
                 sql::build_delete_document_sql(),
                 duckdb::params![document_id],
             )
             .map_err(|e| QuackragError::Store(format!("Failed to delete document: {e}")))?;
+
+            // コミット
+            tx.commit()
+                .map_err(|e| QuackragError::Store(format!("Failed to commit transaction: {e}")))?;
 
             Ok(())
         })
