@@ -21,6 +21,44 @@ pub struct DuckDbStore {
 
 impl DuckDbStore {
     /// 設定から DuckDbStore を構築する
+    pub fn db_path(&self) -> Option<&std::path::Path> {
+        match &self.config.storage_mode {
+            StorageMode::File { path } => Some(path),
+            StorageMode::InMemory => None,
+        }
+    }
+
+    pub async fn list_sources(&self) -> Result<Vec<String>> {
+        let conn = Arc::clone(&self.conn);
+
+        tokio::task::spawn_blocking(move || {
+            let conn = conn
+                .lock()
+                .map_err(|e| QuackragError::Store(format!("Failed to lock connection: {e}")))?;
+
+            let mut stmt = conn
+                .prepare(sql::build_list_sources_sql())
+                .map_err(|e| QuackragError::Store(format!("Failed to prepare query: {e}")))?;
+
+            let sources = stmt
+                .query_map([], |row| {
+                    let source: String = row.get(0)?;
+                    Ok(source)
+                })
+                .map_err(|e| QuackragError::Store(format!("Failed to list sources: {e}")))?;
+
+            let mut result = Vec::new();
+            for source in sources {
+                result.push(
+                    source.map_err(|e| QuackragError::Store(format!("Failed to read row: {e}")))?,
+                );
+            }
+            Ok(result)
+        })
+        .await
+        .map_err(|e| QuackragError::Store(format!("Task join error: {e}")))?
+    }
+
     pub fn new(config: DuckDbConfig) -> Result<Self> {
         let conn = match &config.storage_mode {
             StorageMode::InMemory => Connection::open_in_memory(),

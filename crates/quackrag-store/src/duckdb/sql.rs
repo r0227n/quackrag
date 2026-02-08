@@ -73,6 +73,11 @@ pub fn build_clear_sql() -> &'static str {
     "DELETE FROM embeddings; DELETE FROM documents;"
 }
 
+/// ソース一覧取得
+pub fn build_list_sources_sql() -> &'static str {
+    "SELECT DISTINCT source FROM documents ORDER BY source"
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
