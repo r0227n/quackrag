@@ -1584,7 +1584,15 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-trait",
+ "candle-core",
+ "candle-nn",
+ "candle-transformers",
+ "hf-hub",
  "quackrag-core",
+ "serde_json",
+ "tokenizers",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]
