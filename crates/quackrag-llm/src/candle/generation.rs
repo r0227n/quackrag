@@ -91,7 +91,7 @@ pub(crate) fn generate_full(
     let penalty_tokens = get_penalty_tokens(&all_tokens, config.repeat_last_n);
     let logits = apply_repeat_penalty(&logits, &penalty_tokens, config.repeat_penalty)
         .map_err(|e| quackrag_core::error::QuackragError::Llm(e.to_string()))?;
-    let next_token = logits_processor
+    let mut next_token = logits_processor
         .sample(&logits)
         .map_err(|e| quackrag_core::error::QuackragError::Llm(e.to_string()))?;
 
@@ -127,7 +127,7 @@ pub(crate) fn generate_full(
         let logits = apply_repeat_penalty(&logits, &penalty_tokens, config.repeat_penalty)
             .map_err(|e| quackrag_core::error::QuackragError::Llm(e.to_string()))?;
 
-        let next_token = logits_processor
+        next_token = logits_processor
             .sample(&logits)
             .map_err(|e| quackrag_core::error::QuackragError::Llm(e.to_string()))?;
 

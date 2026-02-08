@@ -9,8 +9,14 @@ use quackrag_llm::{format_chat_prompt, CandleBackend, CandleConfig};
 /// ```bash
 /// cargo test -p quackrag-llm --test integration_test -- --ignored --nocapture
 /// ```
+///
+/// または環境変数で有効化:
+///
+/// ```bash
+/// ENABLE_INTEGRATION_TEST=1 cargo test -p quackrag-llm --nocapture
+/// ```
 #[tokio::test]
-#[ignore]
+#[ignore = "Requires GGUF model download (~500MB), run with --ignored or ENABLE_INTEGRATION_TEST=1"]
 async fn test_candle_backend_generation() {
     // デフォルト設定でバックエンド作成 (Gemma 3 1B Q4_K_M)
     // 出力トークン数を短くしてテスト高速化
@@ -46,7 +52,7 @@ async fn test_candle_backend_generation() {
 
 /// ストリーミング出力テスト
 #[tokio::test]
-#[ignore]
+#[ignore = "Requires GGUF model download (~500MB), run with --ignored or ENABLE_INTEGRATION_TEST=1"]
 async fn test_candle_backend_streaming() {
     use futures::StreamExt;
 
@@ -82,7 +88,7 @@ async fn test_candle_backend_streaming() {
 
 /// カスタム設定テスト
 #[tokio::test]
-#[ignore]
+#[ignore = "Requires GGUF model download (~500MB), run with --ignored or ENABLE_INTEGRATION_TEST=1"]
 async fn test_custom_config() {
     use quackrag_llm::CandleConfig;
 

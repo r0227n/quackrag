@@ -71,21 +71,32 @@ while let Some(result) = stream.next().await {
 
 ## テスト
 
-### 単体テスト
+### ユニットテスト（高速、モデルダウンロード不要）
+
+CI で自動実行されるテスト:
 
 ```bash
-cargo test -p quackrag-llm
+cargo test --package quackrag-llm
 ```
 
-### 統合テスト (モデルダウンロード必要)
+以下がテストされます:
+- チャットテンプレートのフォーマット検証
+- 設定のデフォルト値とビルダーパターン
+- リピートペナルティロジックの動作確認
+
+### 統合テスト（モデルダウンロード必要、約500MB）
+
+実際の GGUF モデルを使用した推論テスト:
 
 ```bash
-# 基本テスト
-cargo test -p quackrag-llm --test integration_test -- --ignored --nocapture test_candle_backend_generation
+# 全ての統合テストを実行
+cargo test --package quackrag-llm -- --ignored --nocapture
 
-# ストリーミングテスト
-cargo test -p quackrag-llm --test integration_test -- --ignored --nocapture test_candle_backend_streaming
+# 特定のテストのみ実行
+cargo test --package quackrag-llm --test integration_test -- --ignored --nocapture test_candle_backend_generation
 ```
+
+初回実行時は HuggingFace から Gemma 3 1B Q4_K_M モデル（約500MB）が自動ダウンロードされます。
 
 ## 依存関係
 
