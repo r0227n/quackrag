@@ -79,11 +79,17 @@ pub async fn run(
 }
 
 fn collect_files(path: &Path, files: &mut Vec<PathBuf>) -> anyhow::Result<()> {
-    if path.is_file() {
+    // シンボリックリンクをスキップして無限再帰を防止
+    let metadata = std::fs::symlink_metadata(path)?;
+    if metadata.file_type().is_symlink() {
+        return Ok(());
+    }
+
+    if metadata.is_file() {
         if is_text_file(path) {
             files.push(path.to_path_buf());
         }
-    } else if path.is_dir() {
+    } else if metadata.is_dir() {
         for entry in std::fs::read_dir(path)? {
             let entry = entry?;
             collect_files(&entry.path(), files)?;

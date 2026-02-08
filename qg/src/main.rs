@@ -13,19 +13,14 @@ async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     // tracing 初期化
+    // RUST_LOG環境変数を優先し、なければ--verboseフラグを使用
     let filter = if cli.verbose {
-        EnvFilter::new("debug")
+        EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("debug"))
     } else {
-        EnvFilter::new("warn")
+        EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("warn"))
     };
     tracing_subscriber::fmt().with_env_filter(filter).init();
 
     let app_config = config::AppConfig::load(cli.config.as_deref(), cli.db.as_deref())?;
-
-    if let Err(e) = commands::dispatch(cli.command, &app_config).await {
-        eprintln!("Error: {e:#}");
-        std::process::exit(1);
-    }
-
-    Ok(())
+    commands::dispatch(cli.command, &app_config).await
 }

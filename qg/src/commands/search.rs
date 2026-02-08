@@ -29,8 +29,9 @@ pub async fn run(config: &AppConfig, query: &str, top_k: usize) -> anyhow::Resul
 }
 
 fn truncate(s: &str, max_chars: usize) -> String {
-    let trimmed: String = s.chars().take(max_chars).collect();
-    if s.chars().count() > max_chars {
+    let mut chars = s.chars();
+    let trimmed: String = chars.by_ref().take(max_chars).collect();
+    if chars.next().is_some() {
         format!("{trimmed}...")
     } else {
         trimmed

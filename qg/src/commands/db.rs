@@ -1,3 +1,5 @@
+use std::io::{stdin, stdout, Write};
+
 use quackrag_core::traits::store::VectorStore;
 
 use crate::cli::DbAction;
@@ -31,6 +33,15 @@ pub async fn run(config: &AppConfig, action: DbAction) -> anyhow::Result<()> {
             }
         }
         DbAction::Clear => {
+            // 確認プロンプト
+            print!("Are you sure you want to clear all indexed data? [y/N] ");
+            stdout().flush()?;
+            let mut input = String::new();
+            stdin().read_line(&mut input)?;
+            if !matches!(input.trim().to_lowercase().as_str(), "y" | "yes") {
+                println!("Aborted.");
+                return Ok(());
+            }
             ctx.store.clear().await?;
             println!("All indexed data cleared.");
         }

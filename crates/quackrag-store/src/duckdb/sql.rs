@@ -131,5 +131,6 @@ mod tests {
         assert!(!build_delete_document_sql().is_empty());
         assert!(!build_count_sql().is_empty());
         assert!(!build_clear_sql().is_empty());
+        assert!(!build_list_sources_sql().is_empty());
     }
 }

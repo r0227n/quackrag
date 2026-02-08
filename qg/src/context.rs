@@ -1,5 +1,3 @@
-use std::path::PathBuf;
-
 use indicatif::{ProgressBar, ProgressStyle};
 use quackrag_embedding::{CandleEmbedding, EmbeddingConfig};
 use quackrag_llm::{CandleBackend, CandleConfig};
@@ -68,7 +66,7 @@ fn init_store(config: &AppConfig) -> anyhow::Result<DuckDbStore> {
     }
 
     let store_config = DuckDbConfig::default().with_storage_mode(StorageMode::File {
-        path: PathBuf::from(db_path),
+        path: db_path.clone(),
     });
     let store = DuckDbStore::new(store_config)?;
     spinner.finish_with_message("Database ready");
@@ -83,8 +81,16 @@ fn init_embedding() -> anyhow::Result<CandleEmbedding> {
 }
 
 fn init_llm(config: &AppConfig) -> anyhow::Result<CandleBackend> {
+    use quackrag_llm::ModelSource;
+
     let spinner = make_spinner("Loading LLM...");
+    let model_source = ModelSource::HuggingFace {
+        model_repo: config.llm.model_repo.clone(),
+        model_file: config.llm.model_file.clone(),
+        tokenizer_repo: config.llm.tokenizer_repo.clone(),
+    };
     let llm_config = CandleConfig::default()
+        .with_model_source(model_source)
         .with_max_tokens(config.llm.max_tokens)
         .with_temperature(config.llm.temperature);
     let llm = CandleBackend::new(llm_config)?;

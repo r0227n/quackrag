@@ -15,8 +15,10 @@ pub async fn run(
     max_tokens: usize,
     no_stream: bool,
 ) -> anyhow::Result<()> {
-    let _ = max_tokens; // LLM config で制御済み
-    let ctx = AppContext::full(config)?;
+    // CLI引数でmax_tokensを上書き
+    let mut config = config.clone();
+    config.llm.max_tokens = max_tokens;
+    let ctx = AppContext::full(&config)?;
     let embedding = ctx.embedding()?;
     let llm = ctx.llm()?;
 

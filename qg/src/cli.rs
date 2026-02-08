@@ -5,6 +5,7 @@ use clap::{Parser, Subcommand};
 #[derive(Parser)]
 #[command(
     name = "qg",
+    version,
     about = "QuackRAG - Local RAG system with Gemma 3 and DuckDB"
 )]
 pub struct Cli {

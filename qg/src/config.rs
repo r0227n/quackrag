@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 
 use serde::Deserialize;
 
-#[derive(Debug, Deserialize, Default)]
+#[derive(Debug, Clone, Deserialize, Default)]
 pub struct AppConfig {
     #[serde(default)]
     pub database: DatabaseConfig,
@@ -12,7 +12,7 @@ pub struct AppConfig {
     pub chunker: ChunkerConfig,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct DatabaseConfig {
     pub path: PathBuf,
 }
@@ -27,7 +27,7 @@ impl Default for DatabaseConfig {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct LlmConfig {
     pub model_repo: String,
     pub model_file: String,
@@ -48,7 +48,7 @@ impl Default for LlmConfig {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct ChunkerConfig {
     pub chunk_size: usize,
     pub chunk_overlap: usize,
@@ -78,7 +78,9 @@ impl AppConfig {
                 .join("config.toml");
 
             if default_path.exists() {
-                let content = std::fs::read_to_string(&default_path)?;
+                let content = std::fs::read_to_string(&default_path).map_err(|e| {
+                    anyhow::anyhow!("Failed to read config file {}: {e}", default_path.display())
+                })?;
                 toml::from_str(&content)?
             } else {
                 Self::default()

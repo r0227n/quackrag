@@ -9,8 +9,10 @@ use crate::config::AppConfig;
 use crate::context::AppContext;
 
 pub async fn run(config: &AppConfig, top_k: usize, max_tokens: usize) -> anyhow::Result<()> {
-    let _ = max_tokens;
-    let ctx = AppContext::full(config)?;
+    // CLI引数でmax_tokensを上書き
+    let mut config = config.clone();
+    config.llm.max_tokens = max_tokens;
+    let ctx = AppContext::full(&config)?;
     let embedding = ctx.embedding()?;
     let llm = ctx.llm()?;
     let prompt_builder = PromptBuilder::default();
